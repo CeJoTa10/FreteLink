@@ -29,17 +29,13 @@ interface MotoristaProfile {
 }
 
 export default function CaminhoneiroPortal() {
-  useEffect(() => {
-    window.location.replace('/dashboard/motorista');
-  }, []);
-
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<MotoristaProfile | null>(null);
 
-  // States de Login/Cadastro
+  // States de Login/Cadastro (Configurados para Usuário)
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -91,7 +87,6 @@ export default function CaminhoneiroPortal() {
   const fetchProfileAndCargas = async (userId: string) => {
     setLoading(true);
 
-    // Buscar Perfil do Motorista
     const { data: profileData, error: profileError } = await supabase
       .from('motoristas')
       .select('*')
@@ -99,12 +94,11 @@ export default function CaminhoneiroPortal() {
       .single();
 
     if (profileError) {
-      console.error('Perfil não encontrado, o usuário precisa cadastrar o perfil.');
+      console.error('Perfil não encontrado.');
     } else {
       setProfile(profileData);
     }
 
-    // Buscar Cargas Disponíveis (pendentes)
     const { data: disponiveis, error: dispError } = await supabase
       .from('cargas')
       .select(`
@@ -122,7 +116,6 @@ export default function CaminhoneiroPortal() {
       setFretesDisponiveis((disponiveis || []) as unknown as Carga[]);
     }
 
-    // Buscar Carga Ativa deste Motorista (em_transito)
     const { data: ativa, error: ativaError } = await supabase
       .from('cargas')
       .select(`
@@ -147,34 +140,41 @@ export default function CaminhoneiroPortal() {
     setLoading(false);
   };
 
-  // 3. Login
+  // 3. Lógica de Login por Usuário corrigida
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!email.includes('.') || !email.includes('@')) {
-      alert('Por favor, insira um e-mail válido com domínio (ex: motorista@fretelink.com).');
-      return;
-    }
-
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    const emailInterno = `${username.toLowerCase().trim()}@sistema.local`;
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: emailInterno,
+      password
+    });
+
     if (error) {
-      alert('Erro no Login: ' + error.message);
+      alert('Erro no Login: Usuário ou senha incorretos.');
       setLoading(false);
     }
   };
 
-  // 4. Cadastro (Auth + Perfil)
+  // 4. Lógica de Cadastro por Usuário corrigida
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    if (!email.includes('.') || !email.includes('@')) {
-      alert('Por favor, insira um e-mail válido com domínio (ex: motorista@fretelink.com).');
+    if (username.trim().length < 3) {
+      alert('O nome de usuário deve ter pelo menos 3 caracteres.');
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const emailInterno = `${username.toLowerCase().trim()}@sistema.local`;
+
+    const { data, error } = await supabase.auth.signUp({
+      email: emailInterno,
+      password
+    });
 
     if (error) {
       alert('Erro no Cadastro: ' + error.message);
@@ -183,14 +183,13 @@ export default function CaminhoneiroPortal() {
     }
 
     if (data?.user) {
-      // Inserir Perfil do Motorista
       const { error: profileError } = await supabase
         .from('motoristas')
         .insert({
           id: data.user.id,
           nome,
           telefone,
-          placa_veiculo: placa.toUpperCase(),
+          placa_veiculo: placa.toUpperCase().trim(),
         });
 
       if (profileError) {
@@ -199,16 +198,15 @@ export default function CaminhoneiroPortal() {
         alert('Cadastro realizado com sucesso! Bem-vindo.');
       }
     }
+    setLoading(false);
   };
 
-  // 5. Logout
   const handleLogout = async () => {
     if (gpsInterval.current) clearInterval(gpsInterval.current);
     setGpsTrackingActive(false);
     await supabase.auth.signOut();
   };
 
-  // 6. Aceitar Frete
   const handleAceitarFrete = async (cargaId: string) => {
     if (!session || !profile) return;
 
@@ -230,7 +228,6 @@ export default function CaminhoneiroPortal() {
     }
   };
 
-  // 7. Concluir Frete
   const handleConcluirFrete = async () => {
     if (!cargaAtiva || !session) return;
 
@@ -244,10 +241,8 @@ export default function CaminhoneiroPortal() {
       alert('Erro ao concluir frete: ' + error.message);
       setLoading(false);
     } else {
-      // Remover rastreamento ativo
       await supabase.from('rastreamento_ativo').delete().eq('carga_id', cargaAtiva.id);
 
-      // Limpar estados de rastreamento
       if (gpsInterval.current) clearInterval(gpsInterval.current);
       setGpsTrackingActive(false);
 
@@ -258,7 +253,6 @@ export default function CaminhoneiroPortal() {
 
   const [mapReady, setMapReady] = useState(false);
 
-  // 8. Inicializar Mapa e Google Directions na Carga Ativa usando o Script global
   useEffect(() => {
     const activeCarga = cargaAtiva;
     if (!activeCarga) return;
@@ -272,7 +266,7 @@ export default function CaminhoneiroPortal() {
       googleMap.current = new google.maps.Map(mapRef.current, {
         zoom: 14,
         center: { lat: activeCarga.cd_origem.lat, lng: activeCarga.cd_origem.lng },
-        disableDefaultUI: true, // Interface de celular limpa
+        disableDefaultUI: true,
       });
 
       directionsService.current = new google.maps.DirectionsService();
@@ -304,7 +298,6 @@ export default function CaminhoneiroPortal() {
     };
   }, [cargaAtiva]);
 
-  // 8.1. Traçar Rota quando o mapa e a carga estiverem prontos
   useEffect(() => {
     if (!mapReady || !cargaAtiva || !directionsService.current || !directionsRenderer.current) return;
 
@@ -324,7 +317,6 @@ export default function CaminhoneiroPortal() {
     );
   }, [mapReady, cargaAtiva]);
 
-  // 9. Geolocalização Real: Captura a cada 30 segundos
   const dispararEnvioCoordenadas = async (position: GeolocationPosition) => {
     const lat = position.coords.latitude;
     const lng = position.coords.longitude;
@@ -348,7 +340,6 @@ export default function CaminhoneiroPortal() {
     if (cargaAtiva && session) {
       setGpsTrackingActive(true);
 
-      // Capturar geolocalização inicial
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           dispararEnvioCoordenadas,
@@ -356,14 +347,13 @@ export default function CaminhoneiroPortal() {
           { enableHighAccuracy: true }
         );
 
-        // Configurar loop a cada 30 segundos
         gpsInterval.current = setInterval(() => {
           navigator.geolocation.getCurrentPosition(
             dispararEnvioCoordenadas,
             (err) => console.error('Erro de loop GPS:', err),
             { enableHighAccuracy: true }
           );
-        }, 30000); // 30 segundos
+        }, 30000);
       }
     }
 
@@ -373,7 +363,6 @@ export default function CaminhoneiroPortal() {
     };
   }, [cargaAtiva, session]);
 
-  // Carregamento inicial
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-black text-white">
@@ -385,7 +374,6 @@ export default function CaminhoneiroPortal() {
     );
   }
 
-  // Tela de Login/Cadastro
   if (!session) {
     return (
       <div className="flex min-h-screen flex-col justify-center items-center bg-black px-6 text-white font-sans">
@@ -421,7 +409,7 @@ export default function CaminhoneiroPortal() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-zinc-400 mb-1 font-semibold">Placa do Cavalo/Caminhão</label>
+                  <label className="block text-xs text-zinc-400 mb-1 font-semibold">Placa do Caminhão</label>
                   <input
                     type="text"
                     required
@@ -434,15 +422,16 @@ export default function CaminhoneiroPortal() {
               </>
             )}
 
+            {/* Input Visual Alterado para Usuário */}
             <div>
-              <label className="block text-xs text-zinc-400 mb-1 font-semibold">E-mail</label>
+              <label className="block text-xs text-zinc-400 mb-1 font-semibold">Nome de Usuário</label>
               <input
-                type="email"
+                type="text"
                 required
-                placeholder="motorista@fretelink.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-black border border-zinc-800 rounded px-3 py-2.5 text-white focus:outline-none focus:border-emerald-500"
+                placeholder="Ex: joaosilva"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full bg-black border border-zinc-800 rounded px-3 py-2.5 text-white focus:outline-none focus:border-emerald-500 lowercase font-mono"
               />
             </div>
             <div>
@@ -478,11 +467,8 @@ export default function CaminhoneiroPortal() {
     );
   }
 
-  // Dashboard do Caminhoneiro Logado
   return (
     <div className="flex min-h-screen flex-col bg-zinc-950 text-white font-sans max-w-md mx-auto border-x border-zinc-800">
-
-      {/* Header Mobile */}
       <header className="p-4 bg-zinc-900 border-b border-zinc-800 flex justify-between items-center">
         <div>
           <span className="text-[10px] text-emerald-400 uppercase tracking-widest font-black block">Motorista Ativo</span>
@@ -497,7 +483,6 @@ export default function CaminhoneiroPortal() {
         </button>
       </header>
 
-      {/* Rastreamento GPS Flutuante */}
       {gpsTrackingActive && (
         <div className="bg-emerald-500 text-black px-4 py-2 text-xs flex justify-between items-center font-bold">
           <div className="flex items-center space-x-2">
@@ -510,10 +495,7 @@ export default function CaminhoneiroPortal() {
         </div>
       )}
 
-      {/* Main Content Area */}
       <main className="flex-1 p-4 overflow-y-auto space-y-6">
-
-        {/* Caso TENHA Carga Ativa */}
         {cargaAtiva ? (
           <div className="space-y-4">
             <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800 space-y-3">
@@ -541,12 +523,10 @@ export default function CaminhoneiroPortal() {
               </div>
             </div>
 
-            {/* Mapa de Rota */}
             <div className="relative rounded-lg overflow-hidden border border-zinc-800" style={{ height: '300px' }}>
               <div ref={mapRef} className="w-full h-full bg-zinc-900" />
             </div>
 
-            {/* Botão Concluir Viagem */}
             <button
               onClick={handleConcluirFrete}
               className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-black py-4 rounded-lg uppercase text-sm tracking-wide shadow-lg shadow-emerald-500/25 transition-colors"
@@ -555,8 +535,6 @@ export default function CaminhoneiroPortal() {
             </button>
           </div>
         ) : (
-
-          /* Caso NÃO TENHA Carga Ativa: Mostra Cargas Disponíveis */
           <div className="space-y-4">
             <h2 className="text-sm font-extrabold uppercase tracking-widest text-zinc-500">Cargas Interestaduais Disponíveis</h2>
 
@@ -605,7 +583,6 @@ export default function CaminhoneiroPortal() {
           </div>
         )}
       </main>
-
     </div>
   );
 }

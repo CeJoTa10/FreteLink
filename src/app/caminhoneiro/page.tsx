@@ -150,7 +150,7 @@ export default function CaminhoneiroPortal() {
   // 3. Login
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.includes('.') || !email.includes('@')) {
       alert('Por favor, insira um e-mail válido com domínio (ex: motorista@fretelink.com).');
       return;
@@ -175,7 +175,7 @@ export default function CaminhoneiroPortal() {
 
     setLoading(true);
     const { data, error } = await supabase.auth.signUp({ email, password });
-    
+
     if (error) {
       alert('Erro no Cadastro: ' + error.message);
       setLoading(false);
@@ -211,7 +211,7 @@ export default function CaminhoneiroPortal() {
   // 6. Aceitar Frete
   const handleAceitarFrete = async (cargaId: string) => {
     if (!session || !profile) return;
-    
+
     setLoading(true);
     const { error } = await supabase
       .from('cargas')
@@ -246,7 +246,7 @@ export default function CaminhoneiroPortal() {
     } else {
       // Remover rastreamento ativo
       await supabase.from('rastreamento_ativo').delete().eq('carga_id', cargaAtiva.id);
-      
+
       // Limpar estados de rastreamento
       if (gpsInterval.current) clearInterval(gpsInterval.current);
       setGpsTrackingActive(false);
@@ -347,7 +347,7 @@ export default function CaminhoneiroPortal() {
   useEffect(() => {
     if (cargaAtiva && session) {
       setGpsTrackingActive(true);
-      
+
       // Capturar geolocalização inicial
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -481,7 +481,7 @@ export default function CaminhoneiroPortal() {
   // Dashboard do Caminhoneiro Logado
   return (
     <div className="flex min-h-screen flex-col bg-zinc-950 text-white font-sans max-w-md mx-auto border-x border-zinc-800">
-      
+
       {/* Header Mobile */}
       <header className="p-4 bg-zinc-900 border-b border-zinc-800 flex justify-between items-center">
         <div>
@@ -512,7 +512,7 @@ export default function CaminhoneiroPortal() {
 
       {/* Main Content Area */}
       <main className="flex-1 p-4 overflow-y-auto space-y-6">
-        
+
         {/* Caso TENHA Carga Ativa */}
         {cargaAtiva ? (
           <div className="space-y-4">
@@ -521,7 +521,7 @@ export default function CaminhoneiroPortal() {
                 Frete em Andamento
               </span>
               <h2 className="text-base font-bold">{cargaAtiva.descricao}</h2>
-              
+
               <div className="grid grid-cols-2 gap-2 text-xs border-t border-zinc-800/80 pt-3 text-zinc-400">
                 <div>
                   <span className="text-[10px] text-zinc-500 uppercase block">Origem</span>
@@ -555,11 +555,11 @@ export default function CaminhoneiroPortal() {
             </button>
           </div>
         ) : (
-          
+
           /* Caso NÃO TENHA Carga Ativa: Mostra Cargas Disponíveis */
           <div className="space-y-4">
             <h2 className="text-sm font-extrabold uppercase tracking-widest text-zinc-500">Cargas Interestaduais Disponíveis</h2>
-            
+
             {fretesDisponiveis.length === 0 ? (
               <div className="p-8 text-center bg-zinc-900/30 border border-zinc-800 rounded-lg text-zinc-500 text-xs">
                 Nenhum frete disponível no momento. Aguarde o lançamento de novas requisições pelos CDs.

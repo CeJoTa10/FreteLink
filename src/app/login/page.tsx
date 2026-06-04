@@ -114,13 +114,13 @@ export default function LoginPage() {
             {/* Campo E-mail */}
             <div>
               <label htmlFor="email" className="block text-xs text-zinc-400 mb-1.5 font-semibold">
-                Endereço de E-mail
+                Nome de Usuario
               </label>
               <input
                 id="email"
                 type="email"
                 required
-                placeholder="Ex: motorista@teste.com"
+                placeholder="Digite seu nome de usuario"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-zinc-600 transition-colors placeholder:text-zinc-600"

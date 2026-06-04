@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase';
 export default function CadastroPage() {
   const router = useRouter();
   const [nomeCompleto, setNomeCompleto] = useState('');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [tipoUsuario, setTipoUsuario] = useState<'MOTORISTA' | 'GERENTE_CD'>('MOTORISTA');
   const [loading, setLoading] = useState(false);
@@ -45,16 +45,20 @@ export default function CadastroPage() {
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    if (!nomeCompleto || !email || !password) {
+    // Validação básica dos campos alterados
+    if (!nomeCompleto || !username.trim() || !password) {
       setErrorMsg('Por favor, preencha todos os campos.');
       setLoading(false);
       return;
     }
 
     try {
-      // 1. Cadastrar usuário no Supabase Auth
+      // Mascara o username interno gerando um padrão de e-mail para o Supabase Auth
+      const emailInterno = `${username.toLowerCase().trim()}@sistema.local`;
+
+      // 1. Cadastrar usuário no Supabase Auth usando o e-mail mascarado
       const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
+        email: emailInterno,
         password,
       });
 
@@ -105,7 +109,7 @@ export default function CadastroPage() {
       <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none" />
 
       <div className="w-full max-w-lg z-10 space-y-8 bg-zinc-900/50 border border-zinc-800/80 backdrop-blur-md p-8 rounded-2xl shadow-2xl relative">
-        
+
         {/* Cabeçalho */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-block">
@@ -139,16 +143,14 @@ export default function CadastroPage() {
               {/* Card Motorista */}
               <div
                 onClick={() => setTipoUsuario('MOTORISTA')}
-                className={`flex flex-col p-4 rounded-xl border cursor-pointer transition-all duration-300 select-none ${
-                  tipoUsuario === 'MOTORISTA'
-                    ? 'bg-emerald-950/20 border-emerald-500 shadow-lg shadow-emerald-500/10'
-                    : 'bg-zinc-950/40 border-zinc-800 hover:border-zinc-700'
-                }`}
+                className={`flex flex-col p-4 rounded-xl border cursor-pointer transition-all duration-300 select-none ${tipoUsuario === 'MOTORISTA'
+                  ? 'bg-emerald-950/20 border-emerald-500 shadow-lg shadow-emerald-500/10'
+                  : 'bg-zinc-950/40 border-zinc-800 hover:border-zinc-700'
+                  }`}
               >
                 <div className="flex justify-between items-center mb-2">
-                  <span className={`h-4 w-4 rounded-full border flex items-center justify-center ${
-                    tipoUsuario === 'MOTORISTA' ? 'border-emerald-500 bg-emerald-500' : 'border-zinc-700'
-                  }`}>
+                  <span className={`h-4 w-4 rounded-full border flex items-center justify-center ${tipoUsuario === 'MOTORISTA' ? 'border-emerald-500 bg-emerald-500' : 'border-zinc-700'
+                    }`}>
                     {tipoUsuario === 'MOTORISTA' && <span className="h-1.5 w-1.5 rounded-full bg-black" />}
                   </span>
                   <span className="text-emerald-400">🚛</span>
@@ -162,16 +164,14 @@ export default function CadastroPage() {
               {/* Card Gerente CD */}
               <div
                 onClick={() => setTipoUsuario('GERENTE_CD')}
-                className={`flex flex-col p-4 rounded-xl border cursor-pointer transition-all duration-300 select-none ${
-                  tipoUsuario === 'GERENTE_CD'
-                    ? 'bg-indigo-950/20 border-indigo-500 shadow-lg shadow-indigo-500/10'
-                    : 'bg-zinc-950/40 border-zinc-800 hover:border-zinc-700'
-                }`}
+                className={`flex flex-col p-4 rounded-xl border cursor-pointer transition-all duration-300 select-none ${tipoUsuario === 'GERENTE_CD'
+                  ? 'bg-indigo-950/20 border-indigo-500 shadow-lg shadow-indigo-500/10'
+                  : 'bg-zinc-950/40 border-zinc-800 hover:border-zinc-700'
+                  }`}
               >
                 <div className="flex justify-between items-center mb-2">
-                  <span className={`h-4 w-4 rounded-full border flex items-center justify-center ${
-                    tipoUsuario === 'GERENTE_CD' ? 'border-indigo-500 bg-indigo-500' : 'border-zinc-700'
-                  }`}>
+                  <span className={`h-4 w-4 rounded-full border flex items-center justify-center ${tipoUsuario === 'GERENTE_CD' ? 'border-indigo-500 bg-indigo-500' : 'border-zinc-700'
+                    }`}>
                     {tipoUsuario === 'GERENTE_CD' && <span className="h-1.5 w-1.5 rounded-full bg-black" />}
                   </span>
                   <span className="text-indigo-400">🏬</span>
@@ -201,19 +201,19 @@ export default function CadastroPage() {
               />
             </div>
 
-            {/* Campo E-mail */}
+            {/* Campo Nome de Usuário (Substituindo o E-mail) */}
             <div>
-              <label htmlFor="email" className="block text-xs text-zinc-400 mb-1.5 font-semibold">
-                Endereço de E-mail
+              <label htmlFor="username" className="block text-xs text-zinc-400 mb-1.5 font-semibold">
+                Nome de Usuário
               </label>
               <input
-                id="email"
-                type="email"
+                id="username"
+                type="text"
                 required
-                placeholder="Ex: motorista@teste.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-zinc-600 transition-colors placeholder:text-zinc-600"
+                placeholder="Ex: joaosilva"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-zinc-600 transition-colors placeholder:text-zinc-600 lowercase font-mono"
               />
             </div>
 
@@ -238,13 +238,12 @@ export default function CadastroPage() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-4 rounded-lg font-bold tracking-wide uppercase text-xs transition-all duration-300 flex items-center justify-center space-x-2 ${
-              loading
-                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-                : tipoUsuario === 'MOTORISTA'
+            className={`w-full py-4 rounded-lg font-bold tracking-wide uppercase text-xs transition-all duration-300 flex items-center justify-center space-x-2 ${loading
+              ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+              : tipoUsuario === 'MOTORISTA'
                 ? 'bg-emerald-500 hover:bg-emerald-400 text-black shadow-lg shadow-emerald-500/20'
                 : 'bg-indigo-500 hover:bg-indigo-400 text-white shadow-lg shadow-indigo-500/20'
-            }`}
+              }`}
           >
             {loading ? (
               <>
@@ -260,7 +259,7 @@ export default function CadastroPage() {
         <div className="text-center pt-2">
           <p className="text-xs text-zinc-500">
             Já possui uma conta?{' '}
-            <Link href="/login" className="text-zinc-400 hover:text-white underline transition-colors">
+            <Link href="/" className="text-zinc-400 hover:text-white underline transition-colors">
               Fazer Login
             </Link>
           </p>

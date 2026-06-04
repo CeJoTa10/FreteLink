@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -43,15 +43,8 @@ export default function LoginPage() {
     setErrorMsg(null);
 
     try {
-      if (!username.trim()) {
-        throw new Error('Por favor, insira o seu nome de usuário.');
-      }
-
-      // Mascara o username em um formato de e-mail interno para o Supabase Auth
-      const emailInterno = `${username.toLowerCase().trim()}@sistema.local`;
-
       const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email: emailInterno,
+        email,
         password,
       });
 
@@ -118,19 +111,19 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-6 text-sm">
           <div className="space-y-4">
-            {/* Campo Nome de Usuário */}
+            {/* Campo E-mail */}
             <div>
-              <label htmlFor="username" className="block text-xs text-zinc-400 mb-1.5 font-semibold">
-                Nome de Usuário
+              <label htmlFor="email" className="block text-xs text-zinc-400 mb-1.5 font-semibold">
+                Endereço de E-mail
               </label>
               <input
-                id="username"
-                type="text"
+                id="email"
+                type="email"
                 required
-                placeholder="Ex: joaosilva"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-zinc-600 transition-colors placeholder:text-zinc-600 lowercase font-mono"
+                placeholder="Ex: motorista@teste.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-zinc-600 transition-colors placeholder:text-zinc-600"
               />
             </div>
 
@@ -151,11 +144,11 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Botão de Envio */}
+          {/* Botão de Cadastro */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 rounded-lg font-bold tracking-wide uppercase text-xs transition-all duration-300 flex items-center justify-center space-x-2 bg-gradient-to-r from-emerald-500 to-indigo-500 hover:from-emerald-400 hover:to-indigo-400 text-white shadow-lg shadow-emerald-500/10"
+            className={`w-full py-4 rounded-lg font-bold tracking-wide uppercase text-xs transition-all duration-300 flex items-center justify-center space-x-2 bg-gradient-to-r from-emerald-500 to-indigo-500 hover:from-emerald-400 hover:to-indigo-400 text-white shadow-lg shadow-emerald-500/10`}
           >
             {loading ? (
               <>
@@ -180,3 +173,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

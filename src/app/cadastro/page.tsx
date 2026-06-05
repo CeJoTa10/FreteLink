@@ -60,12 +60,6 @@ export default function CadastroPage() {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: emailInterno,
         password,
-        options: {
-          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined,
-          data: {
-            username: username.toLowerCase().trim()
-          }
-        }
       });
 
       if (signUpError) {
@@ -82,6 +76,7 @@ export default function CadastroPage() {
         .insert({
           id: data.user.id,
           nome_completo: nomeCompleto,
+          username: username.toLowerCase().trim(),
           tipo_usuario: tipoUsuario,
         });
 

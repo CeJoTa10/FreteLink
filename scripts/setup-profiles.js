@@ -14,6 +14,7 @@ const sql = `
 CREATE TABLE IF NOT EXISTS public.perfis (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     nome_completo TEXT NOT NULL,
+    username TEXT,
     tipo_usuario TEXT NOT NULL CONSTRAINT check_tipo_usuario CHECK (tipo_usuario IN ('MOTORISTA', 'GERENTE_CD')),
     criado_em TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

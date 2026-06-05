@@ -47,7 +47,7 @@ export default function LoginPage() {
         throw new Error('Por favor, insira o seu nome de usuário.');
       }
 
-      const emailInterno = `${username.toLowerCase().trim()}@sistema.local`;
+      const emailInterno = `${username.toLowerCase().trim()}@frete-link-app.com`;
 
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: emailInterno,

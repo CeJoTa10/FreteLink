@@ -54,14 +54,17 @@ export default function CadastroPage() {
 
     try {
       // Mascara o username interno gerando um padrão de e-mail para o Supabase Auth
-      const emailInterno = `${username.toLowerCase().trim()}@sistema.local`;
+      const emailInterno = `${username.toLowerCase().trim()}@frete-link-app.com`;
 
       // 1. Cadastrar usuário no Supabase Auth usando o e-mail mascarado
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: emailInterno,
         password,
         options: {
-          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined
+          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined,
+          data: {
+            username: username.toLowerCase().trim()
+          }
         }
       });
 

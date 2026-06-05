@@ -60,6 +60,9 @@ export default function CadastroPage() {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: emailInterno,
         password,
+        options: {
+          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined
+        }
       });
 
       if (signUpError) {

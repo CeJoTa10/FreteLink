@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -43,8 +43,14 @@ export default function LoginPage() {
     setErrorMsg(null);
 
     try {
+      if (!username.trim()) {
+        throw new Error('Por favor, insira o seu nome de usuário.');
+      }
+
+      const emailInterno = `${username.toLowerCase().trim()}@sistema.local`;
+
       const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
+        email: emailInterno,
         password,
       });
 
@@ -111,19 +117,19 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-6 text-sm">
           <div className="space-y-4">
-            {/* Campo E-mail */}
+            {/* Campo Nome de Usuário */}
             <div>
-              <label htmlFor="email" className="block text-xs text-zinc-400 mb-1.5 font-semibold">
-                Nome de Usuario
+              <label htmlFor="username" className="block text-xs text-zinc-400 mb-1.5 font-semibold">
+                Nome de Usuário
               </label>
               <input
-                id="email"
-                type="email"
+                id="username"
+                type="text"
                 required
-                placeholder="Digite seu nome de usuario"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-zinc-600 transition-colors placeholder:text-zinc-600"
+                placeholder="Digite seu nome de usuário"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-zinc-600 transition-colors placeholder:text-zinc-600 lowercase font-mono"
               />
             </div>
 

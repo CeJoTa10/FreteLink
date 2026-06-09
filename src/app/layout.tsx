@@ -23,7 +23,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const googleMapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+  const googleMapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyBiAnnr5DJ2w2DxrQyz0IL_paIOOKcgQT8";
 
   return (
     <html
@@ -33,7 +33,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-black text-white">
         {children}
         <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}&libraries=geometry`}
+          src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}&libraries=geometry&loading=async`}
           strategy="beforeInteractive"
         />
       </body>

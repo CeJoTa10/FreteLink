@@ -45,58 +45,55 @@ export default function CadastroPage() {
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    // Validação básica dos campos alterados
+    // Validação básica dos campos
     if (!nomeCompleto || !username.trim() || !password) {
       setErrorMsg('Por favor, preencha todos os campos.');
       setLoading(false);
       return;
     }
 
-    try {
-      // Mascara o username interno gerando um padrão de e-mail para o Supabase Auth
-      const emailInterno = `${username.toLowerCase().trim()}@frete-link-app.com`;
+    if (password.length < 6) {
+      setErrorMsg('A senha deve ter pelo menos 6 caracteres.');
+      setLoading(false);
+      return;
+    }
 
-      // 1. Cadastrar usuário no Supabase Auth usando o e-mail mascarado
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: emailInterno,
-        password,
+    try {
+      // Chama a rota interna do servidor que usa a chave de admin do Supabase
+      // para criar o usuário, contornando restrições do provedor de e-mail
+      const res = await fetch('/api/cadastro', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: username.toLowerCase().trim(),
+          password,
+          nomeCompleto: nomeCompleto.trim(),
+          tipoUsuario,
+        }),
       });
 
-      if (signUpError) {
-        throw new Error(signUpError.message);
-      }
+      const json = await res.json();
 
-      if (!data?.user) {
-        throw new Error('Falha ao criar o usuário. Tente novamente.');
-      }
-
-      // 2. Inserir dados complementares na tabela 'perfis'
-      const { error: profileError } = await supabase
-        .from('perfis')
-        .insert({
-          id: data.user.id,
-          nome_completo: nomeCompleto,
-          username: username.toLowerCase().trim(),
-          tipo_usuario: tipoUsuario,
-        });
-
-      if (profileError) {
-        console.error('Erro ao criar perfil:', profileError);
-        throw new Error('Conta criada, mas ocorreu um erro ao salvar o perfil: ' + profileError.message);
+      if (!res.ok) {
+        throw new Error(json.error || 'Erro ao criar a conta.');
       }
 
       setSuccessMsg('Conta criada com sucesso! Redirecionando...');
 
-      // Pequeno delay para exibir mensagem de sucesso
+      // Faz login automaticamente após o cadastro
+      const emailInterno = `${username.toLowerCase().trim()}@frete-link-app.com`;
+      await supabase.auth.signInWithPassword({ email: emailInterno, password });
+
       setTimeout(() => {
         if (tipoUsuario === 'MOTORISTA') {
           router.push('/dashboard/motorista');
         } else {
           router.push('/dashboard/centro-distribuicao');
         }
-      }, 1500);
+      }, 1200);
 
     } catch (err: any) {
+      console.error('Erro de cadastro detalhado:', err);
       setErrorMsg(err.message || 'Ocorreu um erro no processo de cadastro.');
     } finally {
       setLoading(false);

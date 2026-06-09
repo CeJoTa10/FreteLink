@@ -54,35 +54,6 @@ export default function CaminhoneiroPortal() {
   const watchId = useRef<number | null>(null);
   const gpsInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Monitorar Sessão de Autenticação
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        fetchProfileAndCargas(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) {
-        fetchProfileAndCargas(session.user.id);
-      } else {
-        setProfile(null);
-        setCargaAtiva(null);
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-      if (gpsInterval.current) clearInterval(gpsInterval.current);
-      if (watchId.current) navigator.geolocation.clearWatch(watchId.current);
-    };
-  }, []);
-
   // 2. Buscar Dados do Motorista e Cargas
   const fetchProfileAndCargas = async (userId: string) => {
     setLoading(true);
@@ -140,12 +111,41 @@ export default function CaminhoneiroPortal() {
     setLoading(false);
   };
 
+  // 1. Monitorar Sessão de Autenticação
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        fetchProfileAndCargas(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        fetchProfileAndCargas(session.user.id);
+      } else {
+        setProfile(null);
+        setCargaAtiva(null);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+      if (gpsInterval.current) clearInterval(gpsInterval.current);
+      if (watchId.current) navigator.geolocation.clearWatch(watchId.current);
+    };
+  }, []);
+
   // 3. Lógica de Login por Usuário corrigida
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const emailInterno = `${username.toLowerCase().trim()}@sistema.local`;
+    const emailInterno = `${username.toLowerCase().trim()}@frete-link-app.com`;
 
     const { error } = await supabase.auth.signInWithPassword({
       email: emailInterno,
@@ -169,11 +169,19 @@ export default function CaminhoneiroPortal() {
       return;
     }
 
-    const emailInterno = `${username.toLowerCase().trim()}@sistema.local`;
+    const emailInterno = `${username.toLowerCase().trim()}@frete-link-app.com`;
 
     const { data, error } = await supabase.auth.signUp({
       email: emailInterno,
-      password
+      password,
+      options: {
+        data: {
+          nome: nome,
+          telefone: telefone,
+          placa_veiculo: placa.toUpperCase().trim(),
+          tipo_usuario: 'MOTORISTA'
+        }
+      }
     });
 
     if (error) {
@@ -185,7 +193,7 @@ export default function CaminhoneiroPortal() {
     if (data?.user) {
       const { error: profileError } = await supabase
         .from('motoristas')
-        .insert({
+        .upsert({
           id: data.user.id,
           nome,
           telefone,

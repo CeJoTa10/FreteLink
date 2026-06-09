@@ -1,20 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Inicializa com a chave de SERVICE ROLE (somente no servidor)
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
+// Função auxiliar para inicializar lazily com a chave de SERVICE ROLE (somente no servidor)
+const getSupabaseAdmin = () => {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ynhcesyfdfjhvmowakhy.supabase.co';
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) {
+    throw new Error('A variável de ambiente SUPABASE_SERVICE_ROLE_KEY é obrigatória.');
+  }
+  return createClient(url, key, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
     },
-  }
-);
+  });
+};
 
 export async function POST(req: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const { username, password, nomeCompleto, tipoUsuario } = await req.json();
 
     // Validações básicas

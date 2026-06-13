@@ -2,20 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export async function POST(req: NextRequest) {
-  // Instanciado dentro do handler para garantir que as variáveis de
-  // ambiente do servidor estejam disponíveis em tempo de execução,
-  // não em tempo de build (evita o erro "supabaseKey is required").
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    }
-  );
   try {
+    // Instanciado dentro do handler para garantir que as variáveis de
+    // ambiente do servidor estejam disponíveis em tempo de execução,
+    // não em tempo de build (evita o erro "supabaseKey is required").
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
     const { username, password, nomeCompleto, tipoUsuario } = await req.json();
 
     // Validações básicas
